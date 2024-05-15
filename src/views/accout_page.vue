@@ -10,39 +10,31 @@
 
       <!-- Navigation buttons -->
       <div class="navigation-buttons">
-        <router-link to="/main_page">
+        <router-link to="/mainpage" class="button-link">
           <button>MAIN PAGE</button>
         </router-link>
-        <router-link to="/post_event">
-          <button>POST EVENT</button>
-        <router-link to="/my_top_ten">
+        <router-link to="/post_event" class="button-link">
+          <button>POSTAVI EVENT</button>
+        </router-link>
+        <router-link to="/my_top_ten" class="button-link">
           <button>MY TOP 10</button>
         </router-link>
-        </router-link>
-        <button @click="logout">Logout</button>
+        <button @click="logout" class="logout-button">Logout</button>
       </div>
     </div>
 
     <!-- Right two-thirds -->
     <div class="right-two-thirds">
-      <!-- Songs -->
-      <div class="songs-section">
-        <h2>Songs</h2>
-        <!-- Place for songs selection buttons -->
-        <!-- Replace the following with your actual implementation -->
-        <button>Select Song 1</button>
-        <button>Select Song 2</button>
-        <button>Select Song 3</button>
+      <!-- Songs and Events buttons -->
+      <div class="songs-events-buttons">
+        <button class="songs-button">OCIJENJENE PJESME</button>
+        <button class="events-button">EVENTI</button>
       </div>
 
-      <!-- Events -->
-      <div class="events-section">
-        <h2>Events</h2>
-        <!-- Place for events selection buttons -->
-        <!-- Replace the following with your actual implementation -->
-        <button>Select Event 1</button>
-        <button>Select Event 2</button>
-        <button>Select Event 3</button>
+      <!-- Placeholder for songs or events -->
+      <div class="songs-events-content">
+        <!-- Content will be dynamically rendered here based on selected button -->
+        <!-- For example, song elements or event details -->
       </div>
     </div>
   </div>
@@ -52,13 +44,13 @@
 export default {
   data() {
     return {
-      profilePictureUrl: 'https://via.placeholder.com/150', // Placeholder URL for profile picture
-      username: 'User123' // Placeholder username
+      profilePictureUrl: 'https://via.placeholder.com/150', 
+      username: 'User123',
+      // Add data properties for songs and events if needed
     };
   },
   methods: {
     logout() {
-      // Add your logout logic here
       console.log('Logout clicked');
     }
   }
@@ -72,7 +64,7 @@ export default {
 
 .left-third {
   flex: 1;
-  background-color: lightblue; /* Different color for left third */
+  background-color: #f4c8ca; /* Different color for left third */
   padding: 20px;
 }
 
@@ -99,21 +91,25 @@ export default {
 
 .logout-button {
   display: block;
-  margin-top: 10px; /* Add margin above logout button */
+  margin-top: 80px;
 }
 
 .right-two-thirds {
   flex: 2;
-  display: flex;
-  flex-direction: column;
   padding: 20px;
 }
 
-.songs-section, .events-section {
+.songs-events-buttons {
+  display: flex;
   margin-bottom: 20px;
 }
 
-h2 {
-  margin-bottom: 10px;
+.songs-button, .events-button {
+  flex: 1;
+  margin-right: 10px;
 }
+
+
+
+/* Add additional styles for song elements, event details, etc. */
 </style>
