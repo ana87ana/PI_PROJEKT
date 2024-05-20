@@ -1,104 +1,127 @@
 <template>
+  <div>
     <h1>MyMusicMinutes</h1>
-    <div class="login-form">
-      <form @submit.prevent="submitform">
-        <div class="from-group">
-          <label for="username"><span class="a">Username</span></label>
-          <input type="text" id="username" v-model="username" required>
-        </div>
-        <div class="form-group">
-          <label for="email"><span class="a">Email</span></label>
-          <input type="text" id="email" v-model="email" required>
-        </div>
-        <div class="form-group">
-          <label for="password"><span class="a">Password</span></label>
-          <input type="password" id="password" v-model="password" required>
-        </div>
-        <div class="from-group">
-          <label for="confirm"><span class="a">Confirm password</span></label>
-          <input type="password" id="password" v-model="password" required>
-        </div>
-        <button type="submit">Create</button>
-      </form>
-    </div>
-  </template>
+    <form @submit.prevent="register">
+      <div>
+        <label for="username">Username:</label>
+        <input type="text" v-model="username" />
+      </div>
+      <div>
+        <label for="email">Email:</label>
+        <input type="email" v-model="email" />
+      </div>
+      <div>
+        <label for="password">Password:</label>
+        <input type="password" v-model="password" />
+      </div>
+      <button type="submit">Create</button>
+    </form>
+  </div>
+</template>
 
-  <script>
-  export default {
-    data() {
-      return {
-        username: '',
-        email: '',
-        password: ''
-      };
-    },
-    methods: {
-      submitForm() {
-        console.log('Username:', this.username);
-        console.log('Email:', this.email);
-        console.log('Password:', this.password);
-        this.$router.push('/account');
+<script>
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { ref } from 'vue';
+import { auth, db } from '@/views/firebase'; 
+
+
+export default {
+  setup() {
+    const auth = getAuth();
+    const db = getFirestore();
+
+    const username = ref('');
+    const email = ref('');
+    const password = ref('');
+
+    const register = async () => {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
+        const user = userCredential.user;
+
+        await addDoc(collection(db, 'korisnik'), {
+          uid: user.uid,
+          email: email.value,
+          username: username.value,
+        });
+
+        alert('User registered successfully!');
+        router.$push('/account');
+      } catch (error) {
+        console.error('Error registering user:', error);
+        alert('Error registering user: ' + error.message);
       }
-    }
-  };
-  </script>
-  
-  <style>
-  
-  h1{
-    color: black;
-    font-size: 60px;
-  }
-  
-  .a{
-    color: #000;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  .login-form {
-    max-width: 300px;
-    margin: 0 auto;
-    padding: 20px;
-    border-radius: 5px;
-    background-color: #cd1d25;
-  }
-  
-  .form-group {
-    margin-bottom: 20px;
-  }
-  
-  label {
-    display: block;
-    margin-bottom: 5px;
-  }
-  
-  input[type="text"],
-  input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    background-color: #f4c8ca;
-    border: 1px solid #f4c8ca;
-    border-radius: 3px;
-  }
-  
-  button {
-    width: 35%;
-    align-content: left;
-    padding: 10px;
-    margin: 10px;
-    background-color: #640d12;
-    color:white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #3f0205;
-  }
+    };
 
-  h3{
-    color:#000;
-    align-content: center;
-  }
-  </style>
+    return {
+      username,
+      email,
+      password,
+      register,
+    };
+  },
+};
+</script>
+
+<style>
+h1 {
+  color: black;
+  font-size: 60px;
+}
+
+.a {
+  color: #000;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.login-form {
+  max-width: 300px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 5px;
+  background-color: #cd1d25;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  width: 30%;
+  padding: 8px;
+  background-color: #f4c8ca;
+  border: 1px solid #f4c8ca;
+  border-radius: 3px;
+}
+
+button {
+  width: 15%;
+  align-content: left;
+  padding: 10px;
+  margin: 10px;
+  background-color: #640d12;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #3f0205;
+}
+
+h3 {
+  color: #000;
+  align-content: center;
+}
+</style>
+
