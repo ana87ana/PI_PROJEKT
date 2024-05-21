@@ -3,24 +3,25 @@
     <h1>MyMusicMinutes</h1>
     <form @submit.prevent="register">
       <div>
-        <label for="username">Username:</label>
+        <label for="username"><b>Username:</b></label>
         <input type="text" v-model="username" />
       </div>
       <div>
-        <label for="email">Email:</label>
+        <label for="email"><b>Email:</b></label>
         <input type="email" v-model="email" />
       </div>
       <div>
-        <label for="password">Password:</label>
+        <label for="password"><b>Password:</b></label>
         <input type="password" v-model="password" />
       </div>
-      <button type="submit">Create</button>
+      <button type="submit"><b>CREATE</b></button>
     </form>
   </div>
 </template>
 
 <script>
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { useRouter } from 'vue-router';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { ref } from 'vue';
 import { auth, db } from '@/views/firebase'; 
@@ -34,6 +35,7 @@ export default {
     const username = ref('');
     const email = ref('');
     const password = ref('');
+    const router = useRouter();
 
     const register = async () => {
       try {
@@ -47,7 +49,7 @@ export default {
         });
 
         alert('User registered successfully!');
-        router.$push('/account');
+        router.push('/account');
       } catch (error) {
         console.error('Error registering user:', error);
         alert('Error registering user: ' + error.message);
