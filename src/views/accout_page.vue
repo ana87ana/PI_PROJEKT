@@ -11,13 +11,13 @@
       <!-- Navigation buttons -->
       <div class="navigation-buttons">
         <router-link to="/mainpage" class="button-link">
-          <button>MAIN PAGE</button>
+          <button class="nav-button">MAIN PAGE</button>
         </router-link>
         <router-link to="/post_event" class="button-link">
-          <button>POSTAVI EVENT</button>
+          <button class="nav-button">POSTAVI EVENT</button>
         </router-link>
         <router-link to="/my_top_ten" class="button-link">
-          <button>MY TOP 10</button>
+          <button class="nav-button">MY TOP 10</button>
         </router-link>
         <button @click="logout" class="logout-button">Logout</button>
       </div>
@@ -41,19 +41,53 @@
 </template>
 
 <script>
+import { getAuth, signOut } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { db } from '@/views/firebase'; 
+
 export default {
-  data() {
+  setup() {
+    const profilePictureUrl = ref('https://via.placeholder.com/150');
+    const username = ref('');
+    const auth = getAuth();
+    const router = useRouter();
+
+    const fetchUserData = async (uid) => {
+      const q = query(collection(db, 'korisnik'), where('uid', '==', uid));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
+        username.value = userData.username || 'User123';
+        profilePictureUrl.value = userData.profilePictureUrl || 'https://via.placeholder.com/150';
+      }
+    };
+
+    onMounted(() => {
+      const user = auth.currentUser;
+      if (user) {
+        fetchUserData(user.uid);
+      }
+    });
+
+    const logout = async () => {
+      try {
+        await signOut(auth);
+        console.log('User logged out successfully');
+        router.push('/');
+      } catch (error) {
+        console.error('Error logging out:', error);
+        alert('Error logging out: ' + error.message);
+      }
+    };
+
     return {
-      profilePictureUrl: 'https://via.placeholder.com/150', 
-      username: 'User123',
-      // Add data properties for songs and events if needed
+      profilePictureUrl,
+      username,
+      logout,
     };
   },
-  methods: {
-    logout() {
-      console.log('Logout clicked');
-    }
-  }
 };
 </script>
 
@@ -64,7 +98,7 @@ export default {
 
 .left-third {
   flex: 1;
-  background-color: #f4c8ca; /* Different color for left third */
+  background-color: #f4c8ca; 
   padding: 20px;
 }
 
@@ -85,13 +119,34 @@ export default {
   flex-direction: column;
 }
 
-.button-link {
-  margin-bottom: 10px; /* Add margin between buttons */
+.nav-button {
+  width: 50%; 
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #640d12;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.nav-button:hover {
+  background-color: #3f0205;
 }
 
 .logout-button {
-  display: block;
+  width: 30%; /* Full width */
   margin-top: 80px;
+  padding: 10px;
+  background-color: #640d12;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  background-color: #3f0205;
 }
 
 .right-two-thirds {
@@ -107,9 +162,16 @@ export default {
 .songs-button, .events-button {
   flex: 1;
   margin-right: 10px;
+  padding: 10px;
+  background-color: #640d12;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
 }
 
-
-
-/* Add additional styles for song elements, event details, etc. */
+.songs-button:hover, .events-button:hover {
+  background-color: #a1121a;
+}
 </style>
+
