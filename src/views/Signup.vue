@@ -22,16 +22,14 @@
 <script>
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'vue-router';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { ref } from 'vue';
 import { auth, db } from '@/views/firebase'; 
-
 
 export default {
   setup() {
     const auth = getAuth();
     const db = getFirestore();
-
     const username = ref('');
     const email = ref('');
     const password = ref('');
@@ -42,10 +40,13 @@ export default {
         const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
         const user = userCredential.user;
 
-        await addDoc(collection(db, 'korisnik'), {
-          uid: user.uid,
+        // Set up Firestore document with UID as document ID
+        const userDocRef = doc(db, 'korisnik', user.uid);
+        await setDoc(userDocRef, {
           email: email.value,
           username: username.value,
+          uid: user.uid, // Ensure UID is stored as a field
+          song_id: [] // Initialize song_id array
         });
 
         alert('User registered successfully!');
@@ -126,4 +127,3 @@ h3 {
   align-content: center;
 }
 </style>
-
