@@ -45,8 +45,7 @@ export default {
         await setDoc(userDocRef, {
           email: email.value,
           username: username.value,
-          uid: user.uid, // Ensure UID is stored as a field
-          song_id: [] // Initialize song_id array
+          uid: user.uid
         });
 
         alert('User registered successfully!');
