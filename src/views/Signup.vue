@@ -45,7 +45,8 @@ export default {
         await setDoc(userDocRef, {
           email: email.value,
           username: username.value,
-          uid: user.uid
+          uid: user.uid,
+          isAdmin: false
         });
 
         alert('User registered successfully!');
