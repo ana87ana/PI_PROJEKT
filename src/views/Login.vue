@@ -28,14 +28,33 @@ export default {
   setup() {
     const email = ref('');
     const password = ref('');
-    const router = useRouter(); // Initialize the router
+    const router = useRouter(); 
 
     const submitForm = async () => {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
-        // Successful login
+        const user = userCredential.user;
+
+        const userDocRef = doc(db, 'korisnik', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          console.log('User data:', userData);
+
+          if (userData.isAdmin) {
+            console.log('Admin logged in');
+            router.push('/account');
+          } else {
+            console.log('Regular user logged in');
+            router.push('/account');
+          }
+        } 
+        else {
+          console.error('User document does not exist');
+          alert('User document does not exist');
+        }
         console.log('Logged in user:', userCredential.user);
-        router.push('/account'); // Redirect to the account page
       } catch (error) {
         console.error('Error logging in:', error);
         alert('Error logging in: ' + error.message);
@@ -110,4 +129,3 @@ h3 {
   align-content: center;
 }
 </style>
-
