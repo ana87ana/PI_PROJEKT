@@ -53,6 +53,36 @@ const routes = [
     path: '/post_event',
     name: 'post_event',
     component: () => import('@/views/post_event.vue')
+  },
+  {
+    path: '/events',
+    name: 'events',
+    component: () => import('@/views/events.vue')
+  },
+  {
+    path: '/event/:id',
+    name: 'event_full',
+    component: () => import('@/views/event_full.vue')
+  },
+  {
+    path: '/events_added',
+    name: 'events_added',
+    component: () => import('@/views/events_added.vue')
+  },
+  {
+    path: '/songs_admin',
+    name: 'songs_admin',
+    component: () => import('@/views/songs_admin.vue')
+  },
+  {
+    path: '/post_song',
+    name: 'post_song',
+    component: () => import('@/views/post_song.vue')
+  },
+  {
+    path: '/remove_event/:id',
+    name: 'remove_event',
+    component: () => import('@/views/remove_event.vue')
   }
 ]
 
