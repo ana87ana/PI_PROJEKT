@@ -1,7 +1,7 @@
 <template>
   <div class="event-detail" v-if="event">
     <h1>{{ event.naziv }}</h1>
-    <img :src="event.pictureUrl" alt="Event Picture" class="event-picture">
+    <img :src="event.photoURL" alt="Event Picture" class="event-picture">
     <div class="event-info">
       <button class="add-event-btn" @click="addEvent" :disabled="buttonText === 'Event Added'">{{ buttonText }}</button>
       <p><strong>Lokacija:</strong> {{ event.lokacija }}</p>
@@ -9,6 +9,7 @@
       <p><strong>Izvođač:</strong> {{ event.izvodac }}</p>
       <p><strong>Gdje nabaviti karte:</strong> {{ event.karta }}</p>
       <p><strong>Cijena karte:</strong> {{ event.karta_c }}</p>
+      <button v-if="isAdmin" class="remove-event-btn" @click="removeEvent">Remove Event</button>
     </div>
   </div>
   <div class="account-link">
@@ -20,16 +21,18 @@
 
 <script>
 import { defineComponent, ref, onMounted } from 'vue';
-import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
-import { db } from '@/views/firebase';
-import { useRoute } from 'vue-router';
+import { doc, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { db, auth } from '@/views/firebase';
+import { useRoute, useRouter } from 'vue-router';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default defineComponent({
   setup() {
     const route = useRoute();
+    const router = useRouter();
     const event = ref(null);
     const buttonText = ref('Add Event');
+    const isAdmin = ref(false);
     const auth = getAuth();
     const user = ref(null);
 
@@ -58,6 +61,7 @@ export default defineComponent({
           const uid = await fetchUserUid();
           if (uid) {
             await checkIfEventAdded(uid);
+            await checkAdmin(uid);
           }
         } else {
           console.error('No such event!');
@@ -79,15 +83,36 @@ export default defineComponent({
       }
     };
 
+    const checkAdmin = async (uid) => {
+      try {
+        const userDoc = await getDoc(doc(db, 'korisnik', uid));
+        isAdmin.value = userDoc.exists() && userDoc.data().isAdmin;
+      } catch (error) {
+        console.error('Error fetching user document: ', error);
+      }
+    };
+
     const addEvent = async () => {
       if (!event.value || !user.value.uid) return;
 
       try {
-        const userEventRef = doc(collection(db, 'korisnik', user.value.uid, 'userEvents'), route.params.id);
+        const userEventRef = doc(db, 'korisnik', user.value.uid, 'userEvents', route.params.id);
         await setDoc(userEventRef, event.value);
         buttonText.value = 'Event Added';
       } catch (error) {
         console.error('Error adding event:', error);
+      }
+    };
+
+    const removeEvent = async () => {
+      if (!event.value || !user.value.uid) return;
+
+      try {
+        await deleteDoc(doc(db, 'events', route.params.id));
+        console.log(`Event with ID: ${route.params.id} has been deleted`);
+        router.push('/mainpage'); // Redirect to main page after deletion
+      } catch (error) {
+        console.error('Error removing event:', error);
       }
     };
 
@@ -106,6 +131,8 @@ export default defineComponent({
       event,
       buttonText,
       addEvent,
+      isAdmin,
+      removeEvent,
     };
   },
 });
@@ -117,14 +144,14 @@ export default defineComponent({
 }
 
 .event-picture {
-  width: 100%;
-  height: auto;
+  width: 40%;
+  height: 20%;
   border-radius: 8px;
-  margin-bottom: 20px;
 }
 
 .event-info {
   position: relative;
+  width: 40%;
   background-color: #f4f4f4;
   padding: 20px;
   border-radius: 8px;
@@ -154,6 +181,20 @@ export default defineComponent({
 
 .add-event-btn:hover {
   background-color: #0056b3;
+}
+
+.remove-event-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.remove-event-btn:hover {
+  background-color: #c82333;
 }
 
 .circle {
