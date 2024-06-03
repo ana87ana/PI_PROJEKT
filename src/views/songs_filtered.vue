@@ -7,12 +7,12 @@
     <div v-else class="songs-list">
       <div v-for="(song, index) in songs" :key="index" class="song-item">
         <div class="song-header">
-          <h2>{{ song.name }}</h2>
-          <p>{{ song.artist }}</p>
+          <h2><b>{{ song.name }}</b></h2>
+          <p><b>{{ song.artist }}</b></p>
           <div class="actions">
             <span class="heart" @click="addToTopTen(song)">❤️</span>
             <div class="stars">
-              <span v-for="star in 5" :key="star" class="star" :class="{ active: song.rating >= star }" @click="rateSong(song, star)">★</span>
+              <span v-for="star in 5" :key="star" class="star" :class="{ active: song.userRating >= star }" @click="rateSong(song, star)">★</span>
             </div>
           </div>
         </div>
@@ -27,15 +27,15 @@
 </template>
 
 <script>
-import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { arrayUnion } from 'firebase/firestore';
 import { ref, onMounted } from 'vue';
 
 export default {
   setup() {
     const songs = ref([]);
     const db = getFirestore();
+    const auth = getAuth();
 
     onMounted(async () => {
       const mood = new URLSearchParams(window.location.search).get('mood');
@@ -63,7 +63,7 @@ export default {
 
         querySnapshot.forEach((doc) => {
           console.log('Document data:', doc.data());
-          songs.value.push({ id: doc.id, ...doc.data() });
+          songs.value.push({ id: doc.id, ...doc.data(), userRating: 0 });
         });
       } catch (error) {
         console.error('Error fetching songs:', error);
@@ -71,43 +71,54 @@ export default {
     });
 
     const addToTopTen = async (song) => {
-  try {
+      try {
+        const user = auth.currentUser;
 
-    const auth = getAuth();
-    const user = auth.currentUser;
+        if (!user) {
+          throw new Error('No user is logged in');
+        }
 
-    if (!user) {
-      throw new Error('No user is logged in');
-    }
+        const userDocRef = doc(db, 'korisnik', user.uid);
+        const topTenCollectionRef = collection(userDocRef, 'topTenSongs');
+        const topTenSnapshot = await getDocs(topTenCollectionRef);
 
-    const songRef = doc(db, 'pjesme', song.id);
-    const usersCollectionRef = collection(db, 'korisnik');
-    
-    const q = query(usersCollectionRef, where('uid', '==', user.uid));
-    const querySnapshot = await getDocs(q);
-    
-    const userDoc = querySnapshot.docs[0];
-    const userRef = userDoc.ref;
+        if (topTenSnapshot.size >= 10) {
+          alert('You can only have 10 songs in your top ten list.');
+          return;
+        }
 
-    await updateDoc(userRef, {
-      song_id: arrayUnion(songRef) 
-    });
-    
-    alert('Added to top 10!');
-  } catch (error) {
-    console.error('Error adding to top 10:', error);
-    alert('Error adding to top 10: ' + error.message);
-  }
-};
+        const songRef = doc(topTenCollectionRef, song.id);
 
+        await setDoc(songRef, {
+          ...song,
+          userRating: song.userRating 
+        });
+
+        alert('Added to top 10!');
+      } catch (error) {
+        console.error('Error adding to top 10:', error);
+        alert('Error adding to top 10: ' + error.message);
+      }
+    };
 
     const rateSong = async (song, rating) => {
       try {
-        const songRef = doc(db, 'pjesme', song.id);
-        await updateDoc(songRef, {
-          rating: rating
+        const user = auth.currentUser;
+
+        if (!user) {
+          throw new Error('No user is logged in');
+        }
+
+        const userDocRef = doc(db, 'korisnik', user.uid);
+        const songRef = doc(collection(userDocRef, 'ratedSongs'), song.id);
+
+        await setDoc(songRef, {
+          ...song,
+          userRating: rating
         });
-        song.rating = rating;
+
+        song.userRating = rating; 
+
         alert(`Rated ${rating} stars!`);
       } catch (error) {
         console.error('Error rating song:', error);
@@ -124,7 +135,6 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .songs-list {
   display: flex;
@@ -136,7 +146,7 @@ export default {
   background-color: #f4c8ca;
   padding: 10px;
   margin: 10px;
-  width: calc(33.333% - 20px); /* Three items per row with margins */
+  width: calc(33.333% - 20px); 
   box-sizing: border-box;
 }
 
@@ -153,6 +163,10 @@ export default {
   margin-top: 10px;
 }
 
+p, h2{
+  color:#640d12;
+}
+
 .heart {
   cursor: pointer;
 }
@@ -167,7 +181,7 @@ export default {
 }
 
 .star.active {
-  color: gold;
+  color: #966d69;
 }
 
 .circle {
