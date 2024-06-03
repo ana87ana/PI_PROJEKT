@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { getFirestore, doc, getDocs, updateDoc, collection, query, where, deleteDoc} from 'firebase/firestore';
+import { getFirestore, doc, getDocs, getDoc, updateDoc, collection, setDoc, deleteDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { ref, onMounted } from 'vue';
 
@@ -64,13 +64,22 @@ export default {
           throw new Error('No user is logged in');
         }
 
-        const songRef = doc(db, 'korisnik', user.uid, 'topTenSongs', song.id);
-
-        await updateDoc(songRef, {
+        const topTenSongRef = doc(db, 'korisnik', user.uid, 'topTenSongs', song.id);
+        const songData = {
+          name: song.name,
+          artist: song.artist,
           userRating: rating
-        });
+        };
 
-        song.userRating = rating; // Update the local rating
+        await setDoc(topTenSongRef, songData);
+
+        const ratedSongRef = doc(db, 'korisnik', user.uid, 'ratedSongs', song.id);
+        const ratedDoc = await getDoc(ratedSongRef);
+        if (ratedDoc.exists()) {
+          await updateDoc(ratedSongRef, { userRating: rating });
+        }
+
+        song.userRating = rating;
 
         alert(`Rated ${rating} stars!`);
       } catch (error) {
@@ -88,9 +97,8 @@ export default {
         }
 
         const songRef = doc(db, 'korisnik', user.uid, 'topTenSongs', song.id);
-        await deleteDoc(songRef);  // Corrected method to delete the document
+        await deleteDoc(songRef);
 
-        // Remove the song from the local list
         const songIndex = songs.value.findIndex(s => s.id === song.id);
         if (songIndex > -1) {
           songs.value.splice(songIndex, 1);
@@ -102,6 +110,7 @@ export default {
         alert('Error removing from top 10: ' + error.message);
       }
     };
+
 
     return {
       songs,
@@ -130,6 +139,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  color:#3f0205;
 }
 
 .actions {
@@ -153,7 +163,7 @@ export default {
 }
 
 .star.active {
-  color: gold;
+  color: #966d69;
 }
 
 .circle {
