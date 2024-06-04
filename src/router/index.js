@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router';
 import Login from '@/views/Login.vue'
 import Songs from '@/views/songs.vue';
 import SongsFiltered from '@/views/songs_filtered.vue';
@@ -12,10 +12,7 @@ const routes = [
   {
     path: '/signup',
     name: 'S',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/Signup.vue')
+    component: () => import('../views/Signup.vue')
   },
   {
     path: '/account',
@@ -65,11 +62,6 @@ const routes = [
     component: () => import('@/views/event_full.vue')
   },
   {
-    path: '/events_added',
-    name: 'events_added',
-    component: () => import('@/views/events_added.vue')
-  },
-  {
     path: '/songs_admin',
     name: 'songs_admin',
     component: () => import('@/views/songs_admin.vue')
@@ -80,9 +72,9 @@ const routes = [
     component: () => import('@/views/post_song.vue')
   },
   {
-    path: '/remove_event/:id',
-    name: 'remove_event',
-    component: () => import('@/views/remove_event.vue')
+    path: '/my_events',
+    name: 'my_events',
+    component: () => import('@/views/my_events.vue')
   }
 ]
 
@@ -92,4 +84,3 @@ const router = createRouter({
 })
 
 export default router
-
