@@ -1,15 +1,18 @@
 <template>
   <div class="event-detail" v-if="event">
-    <h1>{{ event.naziv }}</h1>
+    <h1>{{ event.naziv.toUpperCase() }}</h1>
     <img :src="event.photoURL" alt="Event Picture" class="event-picture">
     <div class="event-info">
       <button class="add-event-btn" @click="addEvent" :disabled="buttonText === 'Event Added'">{{ buttonText }}</button>
-      <p><strong>Lokacija:</strong> {{ event.lokacija }}</p>
-      <p><strong>Datum:</strong> {{ event.datum }}</p>
-      <p><strong>Izvođač:</strong> {{ event.izvodac }}</p>
-      <p><strong>Gdje nabaviti karte:</strong> {{ event.karta }}</p>
-      <p><strong>Cijena karte:</strong> {{ event.karta_c }}</p>
+      <p><strong>LOKACIJA:</strong> {{ event.lokacija }}</p>
+      <p><strong>DATUM:</strong> {{ event.datum }}</p>
+      <p><strong>IZVOĐAČ:</strong> {{ event.izvodac }}</p>
+      <p><strong>GDJE NABAVITI KARTE:</strong> {{ event.karta }}</p>
+      <p><strong>CIJENA KARTE:</strong> {{ event.karta_c }}</p>
       <button v-if="isAdmin" class="remove-event-btn" @click="removeEvent">Remove Event</button>
+      <div v-if="isAdmin" class="comment-section">
+        <textarea v-model="comment" placeholder="Enter reason for removal"></textarea>
+      </div>
     </div>
   </div>
   <div class="account-link">
@@ -21,7 +24,7 @@
 
 <script>
 import { defineComponent, ref, onMounted } from 'vue';
-import { doc, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, deleteDoc, setDoc, collection, addDoc } from 'firebase/firestore';
 import { db, auth } from '@/views/firebase';
 import { useRoute, useRouter } from 'vue-router';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -35,6 +38,7 @@ export default defineComponent({
     const isAdmin = ref(false);
     const auth = getAuth();
     const user = ref(null);
+    const comment = ref('');
 
     const fetchUserUid = async () => {
       try {
@@ -109,8 +113,19 @@ export default defineComponent({
 
       try {
         await deleteDoc(doc(db, 'events', route.params.id));
-        console.log(`Event with ID: ${route.params.id} has been deleted`);
-        router.push('/mainpage'); // Redirect to main page after deletion
+        
+        const message = {
+          eventId: route.params.id,
+          eventName: route.params.naziv,
+          reason: comment.value,
+          userId: event.value.uid,
+          timestamp: new Date()
+        };
+        
+        await addDoc(collection(db, 'messages'), message);
+        
+        console.log(`Event with ID: ${route.params.id} has been deleted with comment: ${comment.value}`);
+        router.push('/mainpage');
       } catch (error) {
         console.error('Error removing event:', error);
       }
@@ -133,6 +148,7 @@ export default defineComponent({
       addEvent,
       isAdmin,
       removeEvent,
+      comment,
     };
   },
 });
@@ -141,6 +157,10 @@ export default defineComponent({
 <style scoped>
 .event-detail {
   padding: 20px;
+  display:flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
 }
 
 .event-picture {
@@ -151,8 +171,8 @@ export default defineComponent({
 
 .event-info {
   position: relative;
-  width: 40%;
-  background-color: #f4f4f4;
+  width: 37%;
+  background-color: #f4c8ca;
   padding: 20px;
   border-radius: 8px;
 }
@@ -165,8 +185,8 @@ export default defineComponent({
   position: absolute;
   top: 10px;
   right: 10px;
-  background-color: #007bff;
-  color: white;
+  background-color: #640d12;
+  color: #f4c8ca;
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
@@ -180,13 +200,14 @@ export default defineComponent({
 }
 
 .add-event-btn:hover {
-  background-color: #0056b3;
+  background-color: #3f0205;
 }
 
 .remove-event-btn {
-  background-color: #dc3545;
+  background-color: #640d12;
   color: white;
   border: none;
+  width: 15%;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
@@ -194,7 +215,17 @@ export default defineComponent({
 }
 
 .remove-event-btn:hover {
-  background-color: #c82333;
+  background-color: #3f0205;
+}
+
+.comment-section {
+  margin-top: 20px;
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  margin-top: 10px;
 }
 
 .circle {
@@ -207,4 +238,5 @@ export default defineComponent({
   border-radius: 50%;
   cursor: pointer;
 }
+
 </style>
