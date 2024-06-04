@@ -3,15 +3,15 @@
     <h1>MyMusicMinutes</h1>
     <form @submit.prevent="register">
       <div>
-        <label for="username"><b>Username:</b></label>
+        <label for="username"><b>USERNAME:</b></label>
         <input type="text" v-model="username" />
       </div>
       <div>
-        <label for="email"><b>Email:</b></label>
+        <label for="email"><b>EMAIL:</b></label>
         <input type="email" v-model="email" />
       </div>
       <div>
-        <label for="password"><b>Password:</b></label>
+        <label for="password"><b>PASSWORD:</b></label>
         <input type="password" v-model="password" />
       </div>
       <button type="submit"><b>CREATE</b></button>
@@ -40,12 +40,11 @@ export default {
         const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
         const user = userCredential.user;
 
-        // Set up Firestore document with UID as document ID
         const userDocRef = doc(db, 'korisnik', user.uid);
         await setDoc(userDocRef, {
           email: email.value,
           username: username.value,
-          uid: user.uid,
+          uid: user.uid, 
           isAdmin: false
         });
 
@@ -69,12 +68,12 @@ export default {
 
 <style>
 h1 {
-  color: black;
+  color:#3f0205;
   font-size: 60px;
 }
 
 .a {
-  color: #000;
+  color: #3f0205;
   font-size: 20px;
   font-weight: bold;
 }
@@ -93,7 +92,9 @@ h1 {
 
 label {
   display: block;
-  margin-bottom: 5px;
+  color:#3f0205;
+  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 input[type="text"],
@@ -112,7 +113,7 @@ button {
   padding: 10px;
   margin: 10px;
   background-color: #640d12;
-  color: white;
+  color: #f4c8ca;
   border: none;
   border-radius: 3px;
   cursor: pointer;
