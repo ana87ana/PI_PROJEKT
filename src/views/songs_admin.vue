@@ -5,10 +5,10 @@
       </div>
       <div class="buttons">
         <router-link to="/post_song">
-          <button>ADD SONG</button>
+          <button><b>ADD SONG</b></button>
         </router-link>
         <router-link to="/songs">
-          <button>FIND SONG</button>
+          <button><b>FIND SONG</b></button>
         </router-link>
       </div>
       <div class="account-link">
@@ -21,7 +21,7 @@
   
   <script>
   export default {
-    // Vue.js component options
+    
   };
   </script>
   
@@ -41,6 +41,7 @@
   
   .buttons button {
     background-color: #640d12;
+    width: 17%;
     margin-left: 15%;
     margin-right: 15%;
     margin-top: 80px;
