@@ -1,39 +1,34 @@
 <template>
   <div class="account-page">
-    <!-- Left third -->
     <div class="left-third">
-      <!-- Profile picture -->
       <img class="profile-picture" :src="profilePictureUrl" alt="Profile Picture">
 
-      <!-- Username -->
       <div class="username">{{ username }}</div>
 
-      <!-- Navigation buttons -->
       <div class="navigation-buttons">
         <router-link to="/mainpage" class="button-link">
-          <button class="nav-button">MAIN PAGE</button>
+          <button class="nav-button"><b>MAIN PAGE</b></button>
         </router-link>
         <router-link to="/post_event" class="button-link">
-          <button class="nav-button">POSTAVI EVENT</button>
+          <button class="nav-button"><b>POSTAVI EVENT</b></button>
         </router-link>
         <router-link to="/top10" class="button-link">
-          <button class="nav-button">MY TOP 10</button>
+          <button class="nav-button"><b>MY TOP 10</b></button>
         </router-link>
-        <button @click="logout" class="logout-button">Logout</button>
+        <router-link to="/my_events" class="button-link">
+          <button class="nav-button"><b>MY EVENTS</b></button>
+        </router-link>
+        <button @click="logout" class="logout-button"><b>LOGOUT</b></button>
       </div>
     </div>
 
-    <!-- Right two-thirds -->
     <div class="right-two-thirds">
-      <!-- Songs and Events buttons -->
       <div class="songs-events-buttons">
-        <button class="songs-button" @click="showContent('songs')">OCIJENJENE PJESME</button>
-        <button class="events-button" @click="showContent('events')">EVENTI</button>
+        <button class="songs-button" @click="showContent('songs')"><b>OCIJENJENE PJESME</b></button>
+        <button class="events-button" @click="showContent('events')"><b>EVENTI</b></button>
       </div>
 
-      <!-- Placeholder for songs or events -->
       <div class="songs-events-content">
-        <!-- Songs Content -->
         <div v-if="activeContent === 'songs'">
           <div v-if="ratedSongs.length === 0">
             No rated songs found.
@@ -44,6 +39,7 @@
                 <h2>{{ song.name }}</h2>
                 <p>{{ song.artist }}</p>
                 <div class="actions">
+                  <span class="heart" @click="addToTopTen(song)">❤️</span>
                   <div class="stars">
                     <span v-for="star in 5" :key="star" class="star" :class="{ active: song.userRating >= star }" @click="rateSong(song, star)">★</span>
                   </div>
@@ -53,21 +49,22 @@
           </div>
         </div>
 
-        <!-- Events Content -->
         <div v-if="activeContent === 'events'">
-          <div v-if="events.length">
-            <div v-for="event in events" :key="event.id" class="event-card">
-              <img :src="event.pictureUrl" alt="Event Picture" class="event-picture">
-              <p>{{ event.naziv }}</p>
-              <p><strong>Lokacija:</strong> {{ event.lokacija }}</p>
-              <p><strong>Datum:</strong> {{ event.datum }}</p>
-              <p><strong>Izvođač:</strong> {{ event.izvodac }}</p>
-              <p><strong>Gdje nabaviti karte:</strong> {{ event.karta }}</p>
-              <p><strong>Cijena karte:</strong> {{ event.karta_c }}</p>
-            </div>
-          </div>
-          <div v-else>
+          <div v-if="events.length === 0">
             <p>No events added.</p>
+          </div>
+          <div v-else class="events-list">
+            <div v-for="event in events" :key="event.id" class="event-item">
+              <img :src="event.photoURL" alt="Event Picture" class="event-picture">
+              <div class="event-details">
+                <h2>{{ event.naziv.toUpperCase() }}</h2>
+                <p><strong>LOKACIJA:</strong> {{ event.lokacija.toUpperCase() }}</p>
+                <p><strong>DATUM:</strong> {{ event.datum }}</p>
+                <p><strong>IZVOĐAČ:</strong> {{ event.izvodac.toUpperCase() }}</p>
+                <p><strong>GDJE NAPRAVITI KARTE:</strong> {{ event.karta.toUpperCase() }}</p>
+                <p><strong>CIJENA KARTE:</strong> {{ event.karta_c + " €" }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -75,12 +72,14 @@
   </div>
 </template>
 
+
 <script>
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, updateDoc, doc, setDoc } from 'firebase/firestore';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { db } from '@/views/firebase';
+import { db, storage } from '@/views/firebase';
+import { getDownloadURL, ref as storageRef } from 'firebase/storage';
 
 export default {
   setup() {
@@ -91,6 +90,16 @@ export default {
     const activeContent = ref('songs');
     const auth = getAuth();
     const router = useRouter();
+
+    const fetchDefaultProfilePictureUrl = async () => {
+  try {
+    const defaultPictureRef = storageRef(storage, 'default-profile-picture.png');
+    profilePictureUrl.value = await getDownloadURL(defaultPictureRef);
+  } catch (error) {
+    console.error('Error fetching default profile picture:', error);
+    profilePictureUrl.value = 'https://via.placeholder.com/150';
+  }
+};
 
     const fetchUserData = async (uid) => {
       const q = query(collection(db, 'korisnik'), where('uid', '==', uid));
@@ -129,6 +138,7 @@ export default {
           fetchUserData(authUser.uid);
           fetchRatedSongs(authUser.uid);
           fetchUserEvents(authUser.uid);
+          fetchDefaultProfilePictureUrl();
         }
       });
     });
@@ -148,37 +158,6 @@ export default {
       }
     };
 
-    const addToTopTen = async (song) => {
-      try {
-        const user = auth.currentUser;
-
-        if (!user) {
-          throw new Error('No user is logged in');
-        }
-
-        const userDocRef = doc(db, 'korisnik', user.uid);
-        const topTenCollectionRef = collection(userDocRef, 'topTenSongs');
-        const topTenSnapshot = await getDocs(topTenCollectionRef);
-
-        if (topTenSnapshot.size >= 10) {
-          alert('You can only have 10 songs in your top ten list.');
-          return;
-        }
-
-        const songRef = doc(topTenCollectionRef, song.id);
-
-        await setDoc(songRef, {
-          ...song,
-          userRating: song.userRating 
-        });
-
-        alert('Added to top 10!');
-      } catch (error) {
-        console.error('Error adding to top 10:', error);
-        alert('Error adding to top 10: ' + error.message);
-      }
-    };
-
     const rateSong = async (song, rating) => {
       try {
         const user = auth.currentUser;
@@ -187,18 +166,53 @@ export default {
           throw new Error('No user is logged in');
         }
 
-        const songRef = doc(db, 'korisnik', user.uid, 'ratedSongs', song.id);
-
-        await updateDoc(songRef, {
+        const ratedSongRef = doc(db, 'korisnik', user.uid, 'ratedSongs', song.id);
+        const songData = {
+          name: song.name,
+          artist: song.artist,
           userRating: rating
-        });
+        };
 
-        song.userRating = rating; // Update the local rating
+        await setDoc(ratedSongRef, songData);
+
+        const topTenSongRef = doc(db, 'korisnik', user.uid, 'topTenSongs', song.id);
+        const topTenDoc = await getDoc(topTenSongRef);
+        if (topTenDoc.exists()) {
+          await updateDoc(topTenSongRef, { userRating: rating });
+        }
+
+        song.userRating = rating;
 
         alert(`Rated ${rating} stars!`);
       } catch (error) {
         console.error('Error rating song:', error);
         alert('Error rating song: ' + error.message);
+      }
+    };
+
+    const addToTopTen = async (song) => {
+      try {
+        const user = auth.currentUser;
+
+        if (!user) {
+          throw new Error('No user is logged in');
+        }
+
+        const topTenSongsCollectionRef = collection(db, 'korisnik', user.uid, 'topTenSongs');
+        const topTenSnapshot = await getDocs(topTenSongsCollectionRef);
+
+        if (topTenSnapshot.size >= 10) {
+          alert('You already have 10 songs in your top 10 list. Remove one before adding another.');
+          return;
+        }
+
+        const songRef = doc(db, 'korisnik', user.uid, 'topTenSongs', song.id);
+        await setDoc(songRef, song);
+
+        alert('Added to top 10!');
+      } catch (error) {
+        console.error('Error adding to top 10:', error);
+        alert('Error adding to top 10: ' + error.message);
       }
     };
 
@@ -209,8 +223,11 @@ export default {
       events,
       activeContent,
       showContent,
-      logout,
       rateSong,
+      addToTopTen,
+      logout,
+      fetchDefaultProfilePictureUrl,
+      
     };
   },
 };
@@ -260,7 +277,7 @@ export default {
 }
 
 .logout-button {
-  width: 30%; /* Full width */
+  width: 30%; 
   margin-top: 80px;
   padding: 10px;
   background-color: #640d12;
@@ -304,23 +321,24 @@ export default {
   flex-direction: column;
 }
 
-.songs-list {
+.songs-list, .events-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
-.song-item {
+.song-item, .event-item {
   border: 1px solid #ccc;
   background-color: #f4c8ca;
   padding: 10px;
   margin: 10px;
 }
 
-.song-header {
+.song-header, .event-details {
   display: flex;
   flex-direction: column;
   align-items: center;
+  color:#3f0205;
 }
 
 .actions {
@@ -332,23 +350,22 @@ export default {
 
 .stars {
   display: flex;
+  color:#966d6f;
 }
 
 .star {
   cursor: pointer;
   font-size: 20px;
+  color:#966d6f;
 }
 
 .star.active {
-  color: gold;
+  color:#990911;
 }
 
-.event-card {
-  border: 1px solid #ccc;
-  padding: 20px;
-  margin: 20px 0;
-  border-radius: 8px;
-  background-color: #f4f4f4;
+.heart {
+  cursor: pointer;
+  font-size: 20px;
 }
 
 .event-picture {
@@ -358,3 +375,4 @@ export default {
   margin-bottom: 20px;
 }
 </style>
+
