@@ -3,9 +3,9 @@
     <div class="title">Dobrodišli natrag! Za što ste zainteresirani danas?</div>
   </div>
   <div class="buttons">
-    <button @click="redirectToSongs">SONGS</button>
+    <button @click="redirectToSongs"><b>SONGS</b></button>
     <router-link to="/events">
-      <button>EVENTS</button>
+      <button><b>EVENTS</b></button>
     </router-link>
   </div>
   <div class="account-link">
