@@ -4,17 +4,18 @@
     <div class="login-form">
       <form @submit.prevent="submitForm">
         <div class="form-group">
-          <label for="email"><span class="a">Email</span></label>
+          <label for="email"><span class="a">EMAIL</span></label>
           <input type="text" id="email" v-model="email" required>
         </div>
         <div class="form-group">
-          <label for="password"><span class="a">Password</span></label>
+          <label for="password"><span class="a">PASSWORD</span></label>
           <input type="password" id="password" v-model="password" required>
         </div>
-        <button type="submit">LOGIN</button>
+        <button type="submit"><b>LOGIN</b></button>
       </form>
     </div>
     <h3>Nemate račun? Stvorite ga <router-link to="/signup">ovdje!</router-link></h3>
+    <h3>Ako imate ikakvih problema, možete kontaktirati admina ovdje: <span class="b">admin@gmail.com</span></h3>
   </div>
 </template>
 
@@ -22,6 +23,7 @@
 import { useRouter } from 'vue-router';
 import { ref } from 'vue';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore'; 
 import { auth, db } from '@/views/firebase'; 
 
 export default {
@@ -35,8 +37,8 @@ export default {
         const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
         const user = userCredential.user;
 
-        const userDocRef = doc(db, 'korisnik', user.uid);
-        const userDoc = await getDoc(userDocRef);
+        const userDocRef = doc(db, 'korisnik', user.uid); 
+        const userDoc = await getDoc(userDocRef); 
         
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -72,12 +74,12 @@ export default {
 
 <style>
 h1 {
-  color: black;
+  color: #330204;
   font-size: 60px;
 }
 
 .a {
-  color: #000;
+  color: #330204;
   font-size: 20px;
   font-weight: bold;
 }
@@ -125,7 +127,12 @@ button:hover {
 }
 
 h3 {
-  color: #000;
+  color: #330204;
   align-content: center;
 }
+
+.b {
+  color:#faabab;
+}
+
 </style>
