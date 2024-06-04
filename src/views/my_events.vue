@@ -6,25 +6,30 @@
         <select id="sort" v-model="selectedSort" @change="sortEvents">
           <option value="eventDateAsc">Event Date Ascending</option>
           <option value="eventDateDesc">Event Date Descending</option>
-          <option value="addedDateAsc">Date Added Ascending</option>
-          <option value="addedDateDesc">Date Added Descending</option>
         </select>
       </div>
       <div class="events">
-        <div v-for="event in sortedEvents" :key="event.id" class="event-card" @click="goToEvent(event.id)">
+        <div v-for="event in sortedEvents" :key="event.id" class="event-card">
           <img :src="event.photoURL" alt="Event Picture" class="event-picture">
           <div class="event-info">
-            <h2>{{ event.naziv }}</h2>
-            <p>{{ event.lokacija }}</p>
+            <h2>{{ event.naziv.toUpperCase() }}</h2>
+            <p>{{ event.lokacija.toUpperCase() }}</p>
             <p>{{ new Date(event.datum).toLocaleDateString() }}</p>
           </div>
         </div>
       </div>
-    </div>
-    <div class="account-link">
-      <router-link to="/account">
-        <div class="circle"></div>
-      </router-link>
+      <div class="deleted-events">
+        <h2>DELETED EVENTS</h2>
+        <div v-for="message in messages" :key="message.id" class="message-card">
+          <p><strong>Naziv eventa:</strong> {{ message.eventName }}</p>
+          <p><strong>Komentar:</strong> {{ message.reason }}</p>
+        </div>
+      </div>
+      <div class="account-link">
+        <router-link to="/account">
+          <div class="circle"></div>
+        </router-link>
+      </div>
     </div>
   </template>
   
@@ -38,7 +43,8 @@
   export default defineComponent({
     setup() {
       const events = ref([]);
-      const selectedSort = ref('eventDateAsc'); // default sort by event date ascending
+      const messages = ref([]);
+      const selectedSort = ref('eventDateAsc'); 
       const router = useRouter();
       const auth = getAuth();
   
@@ -52,9 +58,24 @@
           const q = query(collection(db, 'events'), where('uid', '==', user.uid));
           const querySnapshot = await getDocs(q);
           events.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          sortEvents(); // sort events initially
+          sortEvents(); 
         } catch (error) {
           console.error('Error fetching events: ', error);
+        }
+      };
+  
+      const fetchMessages = async () => {
+        try {
+          const user = auth.currentUser;
+          if (!user) {
+            alert('User is not authenticated');
+            return;
+          }
+          const q = query(collection(db, 'messages'), where('userId', '==', user.uid));
+          const querySnapshot = await getDocs(q);
+          messages.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+          console.error('Error fetching messages: ', error);
         }
       };
   
@@ -63,10 +84,6 @@
           events.value.sort((a, b) => new Date(a.datum) - new Date(b.datum));
         } else if (selectedSort.value === 'eventDateDesc') {
           events.value.sort((a, b) => new Date(b.datum) - new Date(a.datum));
-        } else if (selectedSort.value === 'addedDateAsc') {
-          events.value.sort((a, b) => a.createdAt.seconds - b.createdAt.seconds);
-        } else if (selectedSort.value === 'addedDateDesc') {
-          events.value.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
         }
       };
   
@@ -75,17 +92,16 @@
         return events.value;
       });
   
-      const goToEvent = (id) => {
-        router.push(`/event/${id}`);
-      };
-  
-      onMounted(fetchEvents);
+      onMounted(() => {
+        fetchEvents();
+        fetchMessages();
+      });
   
       return {
         events,
+        messages,
         selectedSort,
         sortedEvents,
-        goToEvent,
         sortEvents,
       };
     },
@@ -99,54 +115,58 @@
   
   .sort-options {
     margin-bottom: 20px;
-    align-content: left;
-  }
-  
-  .sort-options label {
-    margin-right: 10px;
-  }
-  
-  .sort-options select {
-    padding: 5px;
   }
   
   .events {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    gap: 20px;
   }
   
   .event-card {
-    background-color: purple;
     border: 1px solid #ddd;
+    background-color: #f4c8ca;
     border-radius: 8px;
-    margin: 10px;
     padding: 10px;
-    width: 23%;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  
-  .event-card:hover {
-    transform: scale(1.05);
+    width: 200px;
   }
   
   .event-picture {
     width: 100%;
-    height: auto;
+    height: 100px;
+    object-fit: cover;
     border-radius: 8px;
   }
   
   .event-info {
     margin-top: 10px;
+    color: #3f0205;
   }
   
-  .event-info h2 {
-    margin: 0;
+  button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
   }
   
-  .event-info p {
-    margin: 5px 0;
+  button:hover {
+    background-color: #c82333;
+  }
+  
+  .deleted-events {
+    margin-top: 40px;
+  }
+  
+  .message-card {
+    border: 1px solid #ddd;
+    background-color: #f4c8ca;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
   }
   
   .circle {
