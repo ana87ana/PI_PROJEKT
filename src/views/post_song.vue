@@ -1,25 +1,25 @@
 <template>
     <div>
-      <h1>Add Song</h1>
+      <h1>ADD SONG</h1>
       <div class="song-form">
         <form @submit.prevent="submitForm">
           <div class="form-group">
-            <label for="name"><span class="a">Name</span></label>
+            <label for="name"><span class="a">NAME</span></label>
             <input type="text" id="name" v-model="name" required />
           </div>
           <div class="form-group">
-            <label for="artist"><span class="a">Artist</span></label>
+            <label for="artist"><span class="a">ARTIST</span></label>
             <input type="text" id="artist" v-model="artist" required />
           </div>
           <div class="form-group">
-            <label for="mood"><span class="a">Mood</span></label>
+            <label for="mood"><span class="a">MOOD</span></label>
             <input type="text" id="mood" v-model="mood" required />
           </div>
           <div class="form-group">
-            <label for="occasion"><span class="a">Occasion</span></label>
+            <label for="occasion"><span class="a">OCCASION</span></label>
             <input type="text" id="occasion" v-model="occasion" required />
           </div>
-          <button type="submit">Add Song</button>
+          <button type="submit">ADD SONG</button>
         </form>
       </div>
       <div class="account-link">
@@ -107,8 +107,8 @@
   }
   
   button {
-    background-color: #67023d;
-    color: white;
+    background-color: #4d012e;
+    color:#f4c8ca;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
@@ -116,7 +116,7 @@
   }
   
   button:hover {
-    background-color: #4d012e;
+    background-color: #2b021a;
   }
   
   .circle {
