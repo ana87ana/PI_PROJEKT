@@ -11,10 +11,14 @@ Web aplikacija MyMusicMinutes je namijenjena svim ljubiteeljima glazbe. Moguće 
 Postoji opcija registracije ili:
   
   -za običnog korisnika: 
-    email: korisnik@gmail.com 
-    lozinka: 123KorisniK456
+  
+  email: korisnik@gmail.com 
+    
+  lozinka: 123KorisniK456
   
   -za admina:
-    email: admin@gmail.com 
-    lozinka: 123adMin456
+  
+  email: admin@gmail.com 
+  
+  lozinka: 123adMin456
 
